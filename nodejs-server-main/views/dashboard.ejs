@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard</title>
+    <link rel="shortcut icon" href="./images/slulogo.png">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Sharp" rel="stylesheet">
+    <link rel="stylesheet" href="/stylesheets/dashboard.css">
+</head>
+<body>
+    <header>
+        <div class="logo" title="EduSyncTask">
+            <img src="./images/slulogo.png" alt="">
+            <h2>OJT PORTAL</h2>
+        </div>
+        <div class="navbar">
+            <a href="/dashboard" class="active">
+                <span class="material-icons-sharp">home</span>
+                <h3>Home</h3>
+            </a>
+            <a href="/getHistory">
+                <span class="material-icons-sharp">today</span>
+                <h3>History</h3>
+            </a> 
+            <a href="/getChangePassword">
+                <span class="material-icons-sharp">password</span>
+                <h3>Change Password</h3>
+            </a>
+            <a href="/logout">
+                <span class="material-icons-sharp" onclick="">logout</span>
+                <h3>Logout</h3>
+            </a>
+        </div>
+        <div id="profile-btn">
+            <span class="material-icons-sharp">person</span>
+        </div>
+        <div class="theme-toggler">
+            <span class="material-icons-sharp active">light_mode</span>
+            <span class="material-icons-sharp">dark_mode</span>
+        </div>
+        
+        
+    </header>
+    <div class="container">
+        <aside>
+            <div class="profile">
+                    <div class="top">
+                        <button id="uploadPhoto">
+                            <label for="fileInput">
+                                <div class="profile-photo">
+                                    <% if (userData.photo === null) { %>
+                                        <img id="profile-photo-img" src="./images/uploadPhoto.png" alt="">
+                                    <% } else { %>
+                                        <img id="profile-photo-img" src="<%= userData.photo %>" alt="">
+                                    <% } %>
+                                </div>
+                            </label>
+                            <input type="file" id="fileInput" style="display: none;" accept="image/*" onchange="handleFileSelect(event)">
+                        </button>
+                        <div class="info">
+                            <p>Hey, <b><%= userData.firstName %></b> </p>
+                            <small class="text-muted"><%= userData.studID %></small>
+                        </div>  
+                    </div>
+                <div class="about">
+                    <h3> ABOUT YOU</h3>
+                    <hr><br>
+                    <h5>Full Name</h5>
+                    <p><%= userData.firstName %> <% if (userData.middleInitial !== null) { %> <%= userData.middleInitial %>. <% }%> <%= userData.lastName %></p>
+                    <h5>Birth Date</h5>
+                    <p><%= userData.dob %></p>
+                    <% if (!userData.phoneNumber == 0) { %>
+                        <h5>Contact</h5>
+                        <p>0<%= userData.phoneNumber %></p>
+                    <% } %>
+                    <h5>Email</h5>
+                    <p><%= userData.email %></p>
+                    <% if (userData.address !== null) { %>
+                    <h5>Address</h5>
+                    <p><%= userData.address %></p>
+                    <% } %>
+                    <h5>Department</h5>
+                    <p><%= userData.deptName %></p>
+                    <h5>Program</h5>
+                    <p><%= userData.programDescription %></p>
+                    <h5>Course</h5>
+                    <p><%= userData.courseNumber %>: <%= userData.courseCode %></p>
+                    <br>
+                    
+                    <% if (userData.companyName !== null) { %>
+                        <h3> COMPANY</h3>
+                        <hr><br>
+                        <div class="company">
+                          <h5>Company</h5>
+                          <p><%= userData.companyName %></p>
+                          <h5>Address</h5>
+                          <p><%= userData.companyLocation %></p>
+                          <h5>Description</h5>
+                          <p><%= userData.companyDescription %></p>
+                          <% if (userData.supervisor !== null) { %>
+                          <h5>Supervisor</h5>
+                          <p><%= userData.supervisor %></p>
+                          <% } %>
+                        </div>
+                      <% } else { %>
+                        <h3> COMPANY</h3>
+                        <hr><br>
+                        <button class="add-company" onclick="selectCompany()" type="submit">&plus;Add Company Details</button>
+                      <% } %>
+                </div>
+            </div>
+        </aside>
+
+        <main>
+            <h1>Progress</h1>
+
+            <div class="progress-bar" style="bottom: 2%;">
+                <div id="progress" class="progress"><p id="progPercent"></p></div>
+                <div id = "progressTime" style="display: flex; justify-content: flex-end; font-size: 10px;"></div>
+                <script>
+                    const displayProgressTime = document.getElementById('progressTime')
+                    fetch(`/studentProgress?studID=<%= userData.studID %>`)
+                    .then(response => response.json())
+                    .then(records => {
+                        console.log(records[0]);
+                        displayProgressTime.innerHTML =    `${records[0].total_time} / ${records[0].hours_required}`           })
+                    .catch(error => {
+                        console.error('Error fetching student total rendered hours and required hours:', error);
+                    });
+                </script>
+                <% if (userData.companyName !== null) { %>
+                <button id="modalBtn">Daily Report</button>
+                <% } else { %>
+                    <button id="modalBtn" disabled style="display: none;">Daily Report</button>
+                <% } %> 
+            </div>
+
+            <!-- Progress Modal -->
+            <div id="myModal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2 class="title-modal" style="color: #fff;">Work Details</h2>
+                        <span class="close" id="closeWorkModal" style="color: #fff; cursor: pointer;" onmouseover="this.style.color='rgb(168, 18, 18)'" onmouseout="this.style.color='#fff'">&times;</span>
+                    </div>
+                    <div class="modal-body" id="modalBody" style="background-color: #fff; padding: 20px;">
+                        <form id="workForm" action="/submitDailyReport" method="post" autocomplete="off">
+                            <label for="renderedHours">Date</label>
+                            <p id="currentDate" name="currentDate"><%= userData.currentDate %></p>
+                            <br>
+                            <label for="renderedHours">Rendered Hours</label><br>
+                            <input type="text" id="firstField" name="renderedHours" required placeholder="HH:MM:SS"><br>
+                            <br>
+                            <label for="description">Description</label>
+                            <br>
+                            <textarea id="lastField" name="description" rows="4" cols="30" required placeholder="Describe your accomplishment for the day..."></textarea>
+                            <br>
+                            <button class="submit-dtr" type="submit">Submit</button>
+                        </form>
+                        </div>
+                </div>
+            </div>
+            <!-- End of Progress Modal -->
+            
+            <!-- Select Company Modal -->
+            <div id="selectCompanyModal" class="modal">
+                <div class="modal-content" style="height: 250px; top: 20%;">
+                    <div class="modal-header">
+                        <h2 class="title-modal" style="color: #fff;">Select Company</h2>
+                        <span class="close" id ="closeSelectCompanyModal" style="color: #fff; cursor: pointer;" onmouseover="this.style.color='rgb(168, 18, 18)'" onmouseout="this.style.color='#fff'">&times;</span>
+                    </div>
+                    <div class="modal-body" id="modalBody" style="background-color: #fff; padding: 20px;">
+                        <form id="selectCompanyForm" autocomplete="off">
+                            <label for="companySelect">Select Company:</label>
+                            <select id="companySelect" name="company" required style="font-size: 15px; width: 500px; padding: 10px;">
+                                <option value="" disabled selected>Select a company</option>
+                                <!-- Populate company options -->
+                            </select><br>
+                            <br>
+                            <label for="companySupervisor">Supervisor</label><br>
+                            <input type="text" id = "companySupervisor" name="supervisor" required placeholder="Full name of your supervisor" style=" width: 250px;"><br><br><br>
+                            <button onclick="handleUpdateButtonClick('<%= userData.studID %>')" id="updateCompanyButton">Update</button>
+                            <p style="font-size: 12px;">Did not find your company? <a href="#" onclick="addCompany()" onmouseover="this.style.textDecoration = 'underline'; this.style.color='#7380ec'" onmouseout="this.style.textDecoration = 'none'; this.style.color='var(--color-dark-varient)'">Add company details</a></p>
+                        </form>
+                        </div>
+                </div>
+            </div>
+            <!-- End of Select company modal -->
+
+            <!-- Add Company Modal -->
+            <div id="companyModal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2 class="title-modal" style="color: #fff;">Company Details</h2>
+                        <span class="close" id ="closeCompanyModal" style="color: #fff; cursor: pointer;" onmouseover="this.style.color='rgb(168, 18, 18)'" onmouseout="this.style.color='#fff'">&times;</span>
+                    </div>
+                    <div class="modal-body" id="modalBody" style="background-color: #fff; padding: 20px;">
+                        <form id="companyForm" autocomplete="off" onsubmit="submitForm(event)"> 
+                            <label for="companyName">Company Name</label><br>
+                            <input type="text" id ="companyName" name="companyName" required placeholder="Company Name" style=" width: 250px;"><br>
+                            <br>
+                            <label for="companyLocation">Company Location</label><br>
+                            <input type="text" id = "companyLocation" name="companyLocation" required placeholder="Address of the Company" style=" width: 250px;"><br>
+                            <br>
+                            <label for="companySupervisor">Supervisor</label><br>
+                            <input type="text" id = "companySupervisor" name="companySupervisor" required placeholder="Full name of your supervisor" style=" width: 250px;"><br>
+                            <br>
+                            <label for="companyDescription">Description</label><br>
+                            <textarea name="companyDescription" id = "companyDescription" rows="4" cols="30" required placeholder="Briefly describe the company..." style=" height: 100px;"></textarea><br>
+                            <button class="submit-dtr" type="submit" onclick="handleUpdateCompanyButtonOnClick('<%= userData.studID %>')">Submit</button>
+                        </form>
+                        </div>
+                </div>
+            </div>
+            <!-- End of Add company modal -->
+
+                <h2>Recent Records</h2>
+                <div class="timetable" id="timetable">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Work Description</th>
+                                <th>Rendered Hours</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recordsTable">
+                            <!-- Records will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+
+        </main>
+
+        <div class="right">
+            <div class="announcements">
+                <h2>Requirements</h2>
+                <div class="updates">
+                    <div class="message">
+                        <span class="close" onclick="closeDocumentModal()">&times;</span>
+                        <h3 id="submittedDisplay">Submitted Documents</h3>
+                            <form id="documentForm">
+                            </form>
+                        <h3 id="pendingDisplay">Other required documents</h3>
+                        <form id="pendingDocument">
+                            </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="announcements">
+                <h2>Announcements</h2>
+                <div class="updates" id="updates">
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <script>
+        window.onload = function () {
+        populateCompanies();
+
+        // Attach the event listener to the "Update" button using the ID
+        var updateButton = document.getElementById("updateCompanyButton");
+        if (updateButton) {
+            updateButton.addEventListener("click", function(event) {
+            // Pass userData.studID to the function
+            handleUpdateButtonOnClick('<%= userData.studID %>', event);
+        });
+    }
+};
+      </script>
+    <script src ="/javascripts/announcement.js"></script>
+    <script src ="/javascripts/document.js"></script>
+    <script src="/javascripts/app.js"></script>
+    <script src="/javascripts/modal.js"></script>
+    <script src="/javascripts/recentRecords.js"></script>
+</body>
+</html>
+

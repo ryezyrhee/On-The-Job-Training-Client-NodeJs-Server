@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Dashboard</title>
+    <link rel="shortcut icon" href="./images/slulogo.png">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Sharp" rel="stylesheet">
+    <link rel="stylesheet" href="/stylesheets/dashboardFaculty.css">
+</head>
+<body>
+    <header>
+        <div class="logo" title="EduSyncTask">
+            <img src="./images/slulogo.png" alt="">
+            <h2>OJT PORTAL</h2>
+        </div>
+        <div class="navbar">
+            <a href="/getDashboardFaculty" class="active">
+                <span class="material-icons-sharp">home</span>
+                <h3>Home</h3>
+            </a>
+            <% if (userData.totalStudents > 0) { %>
+                <a href="/getStudentList">
+                    <span class="material-icons-sharp">today</span>
+                    <h3>Students</h3>
+                </a> 
+            <% } %>
+            <a href="/getPasswordFaculty">
+                <span class="material-icons-sharp">password</span>
+                <h3>Change Password</h3>
+            </a>
+            <a href="/logout">
+                <span class="material-icons-sharp" onclick="">logout</span>
+                <h3>Logout</h3>
+            </a>
+        </div>
+        <div id="profile-btn">
+            <span class="material-icons-sharp">person</span>
+        </div>
+        <div class="theme-toggler">
+            <span class="material-icons-sharp active">light_mode</span>
+            <span class="material-icons-sharp">dark_mode</span>
+        </div>
+        
+        
+    </header>
+    <div class="container">
+        <aside>
+            <div class="profile">
+                <div class="top">
+                    <button id="uploadPhoto">
+                        <label for="fileInput">
+                            <div class="profile-photo">
+                                <% if (userData.photo === null) { %>
+                                    <img id="profile-photo-img" src="./images/uploadPhoto.png" alt="">
+                                <% } else { %>
+                                    <img id="profile-photo-img" src="<%= userData.photo %>" alt="">
+                                <% } %>
+                            </div>
+                        </label>
+                        <input type="file" id="fileInput" style="display: none;" accept="image/*" onchange="handleFileSelect(event)">
+                    </button>
+                    <div class="info">
+                        <p><b><%= userData.lastName %>, <%= userData.firstName %> <%= userData.middleInitial %></b> </p>
+                        <small class="text-muted"><%= userData.deptAcronym %></small>
+                    </div>
+                </div>
+                <div class="about">
+                    <h3>ABOUT YOU</h3>
+                    <hr><br>
+                    <h5>Full Name</h5>
+                    <% if (userData.prefix !== null) { %>
+                        <p><%= userData.prefix %>. <%= userData.firstName %> 
+                            <% if (userData.middleInitial !== null) { %> <%= userData.middleInitial %>. <% }%> 
+                            <%= userData.lastName %> <%= userData.suffix %></p>
+                    <% } else { %>
+                        <p><%= userData.firstName %> 
+                            <% if (userData.middleInitial !== null) { %> <%= userData.middleInitial %>. <% }%> 
+                            <%= userData.lastName %> <%= userData.suffix %></p>
+                    <% } %>
+                    <h5>Birth Date</h5>
+                    <p><%= userData.birthDate %></p>
+                    <% if (!userData.phoneNumber == 0) { %>
+                        <h5>Contact</h5>
+                        <p>0<%= userData.phoneNumber %></p>
+                    <% } %>
+                    <h5>Email</h5>
+                    <p><%= userData.teacherEmail %></p>
+                    <h5>Department</h5>
+                    <p><%= userData.deptName %></p>
+                </div>
+            </div>
+        </aside>
+
+        <main>
+            <h1>Student Interns</h1>
+            <!-- Search Bar -->
+            <input class="search__input" id = "searchInput" type="text" placeholder="Search Name or Company">
+            <!--Search Bar-->
+            <div class= "sorting">
+                <% if (userData.totalStudents > 0) { %>
+                <label for="filterDropdown">Filter by class:  </label>  
+                <select id="filterDropdown">
+                    <option value="All" selected>All</option>
+                </select>
+                <label for="sortDropdown"  style="margin-left: 3%;">Sort by:  </label>  
+                <select id="sortDropdown">
+                  <option value="name" selected>Name</option>
+                  <option value="company" >Company</option>
+                  <option value="progress">Progress</option>
+                </select>
+                <% } else { %>
+                    <label for="sortDropdown">Sort by:  </label>  
+                    <select id="sortDropdown">
+                      <option value="name" selected>Name</option>
+                      <option value="company" >Company</option>
+                    </select>
+                <% } %>
+
+                <script src ="/javascripts/sortAndFilter.js"></script>
+            </div>
+            <script> 
+            initializeSortAndFilter();
+            </script>
+            <div class="timetable" id="timetable">
+                <table>
+                    <% if (userData.totalStudents > 0) { %>
+                        <thead>
+                            <tr>
+                                <th>Student's Name</th>
+                                <th>Company</th>
+                                <th>Progress Bar</th>
+                                <th>Subject</th>
+                                <th>Email</th>
+                            </tr>
+                        </thead>
+                    <tbody id="recordsTable">
+                        <!-- Records will be populated here -->
+                    </tbody>
+                    <% } else { %>
+                        <thead>
+                            <tr>
+                                <th>Student Name</th>
+                                <th>Company</th>
+                                <th>Contact Information</th>
+                                <th>Adviser</th>
+                                <th>Supervisor</th>
+                            </tr>
+                        </thead>
+                        <tbody id='studentTable'></tbody>
+                        <script>
+                            function populateStudentRecords2() {
+                            const sortDropdown = document.getElementById('sortDropdown');
+                            const searchInput = document.getElementById('searchInput');
+                            fetch('/getAllStudentRecords')
+                                .then(response => {
+                                    return response.json();
+                                })
+                                .then(records => {
+                                    console.log(records);
+                                    records.sort((a, b) => (a.firstName + a.lastName).localeCompare(b.firstName + b.lastName));
+                                    populate2(records);
+                                    sortDropdown.addEventListener('change', function () {
+                                        currentSortOption = sortDropdown.value;
+                                        if (currentSortOption === 'name') {
+                                        records.sort((a, b) => (a.firstName + a.lastName).localeCompare(b.firstName + b.lastName));
+                                        populate2(records);
+                                        } else if (currentSortOption === 'company') {
+                                            records.sort((a, b) => (a.companyName || 'None').localeCompare(b.companyName || 'None'));
+                                            populate2(records);
+                                        }
+                                    });
+                                    searchInput.addEventListener('input', function () {
+                                    const searchQuery = searchInput.value.toLowerCase().trim();
+
+                                    const filteredRecords = records.filter(record =>
+                                        record.firstName.toLowerCase().includes(searchQuery) ||
+                                        record.lastName.toLowerCase().includes(searchQuery) ||
+                                        (record.companyName && record.companyName.toLowerCase().includes(searchQuery))
+                                    );
+
+                                    populate2(filteredRecords);
+                                });
+                                })
+                                .catch(error => {
+                                    console.error('Error fetching student records:', error);
+                                });
+                            }
+
+                            function populate2(records) {
+                            const studentTable = document.getElementById('studentTable');
+                            studentTable.innerHTML = '';
+                            records.forEach(record => {
+                                const row = document.createElement('tr');
+                                row.innerHTML = `
+                                    <td>${record.firstName} ${record.lastName}</td>
+                                    <td style="${record.companyName !== null ? '' : 'color: rgb(165, 42, 42);'}">${record.companyName !== null ? record.companyName : 'None'}</td>
+                                    <td>${record.email}</td>
+                                    <td>${record.teacherName}</td>
+                                    <td style="${record.supervisor !== null ? '' : 'color: rgb(165, 42, 42);'}">${record.supervisor !== null ? record.supervisor : 'None'}</td>
+                                `;
+
+                                studentTable.appendChild(row);
+                            });
+                            }
+                            populateStudentRecords2();
+                        </script>
+                    <% } %>
+                </table>
+            </div>
+            <div id="myModal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2 style="color: #fff;">Required Documents</h2>
+                        <span class="close" onclick="closeModal()" style="color: #fff; cursor: pointer;" onmouseover="this.style.color='rgb(168, 18, 18)'" onmouseout="this.style.color='#fff'">&times;</span>
+                    </div>
+                    <div class="modal-body" id="modalBody" style="background-color: #fff; padding: 20px;">
+                    </div>
+                </div>
+            </div>
+            <!-- Document Checklist Modal -->
+            <div id="documentChecklistModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 style="color: #fff;">Add Required Documents</h2>
+                    <span class="close" onclick="closeDocChecklistModal()" style="color: #fff; cursor: pointer;" onmouseover="this.style.color='rgb(168, 18, 18)'" onmouseout="this.style.color='#fff'">&times;</span>
+                </div>
+                <div class="modal-body" id="modalBody2" style="background-color: #fff; padding: 20px;">
+                </div>
+            </div>
+        </div>
+        <!-- Company Details Modal -->
+        <div id="companyDetailsModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 style="color: #fff;">Company Details</h2>
+                    <span class="close" onclick="closeCompanyDetailsModal()" style="color: #fff; cursor: pointer;" onmouseover="this.style.color='rgb(168, 18, 18)'" onmouseout="this.style.color='#fff'">&times;</span>
+                </div>
+                <div class="modal-body" id="modalBody3" style="background-color: #fff; padding: 20px;">
+                </div>
+            </div>
+        </div>
+        <!-- Add Demerit Modal -->
+        <div id="addDemeritModal" class="modal">
+            <div class="modal-content"  style="height: 30%; top: 19%;">
+                <div class="modal-header">
+                    <h2 style="color: #fff;">Give Demerit</h2>
+                    <span class="close" onclick="closeDemeritModal()" style="color: #fff; cursor: pointer;" onmouseover="this.style.color='rgb(168, 18, 18)'" onmouseout="this.style.color='#fff'">&times;</span>
+                </div>
+                <div class="modal-body" id="modalBody4" style="background-color: #fff; padding: 20px;">
+                </div>
+            </div>
+        </div>
+        </main>
+
+        <div class="right">
+            <div class="announcements">
+                <h2>Announcements</h2>
+                <div class="updates" id="updates">
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <script src ="/javascripts/announcement.js"></script>
+    <script src="/javascripts/app.js"></script>
+    <script src="/javascripts/dashboardFaculty.js"></script>
+    <!-- <script src="/javascripts/modal.js"></script> -->
+</body>
+</html>
+

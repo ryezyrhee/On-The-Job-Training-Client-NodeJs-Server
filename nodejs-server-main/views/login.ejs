@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SLU OJT Portal: Login</title>
+    <link rel="shortcut icon" href="./images/slulogo.png">
+    <link rel="stylesheet" href="/stylesheets/login.css" />
+  </head>
+  <body>
+    <main>
+      <div class="box">
+        <div class="inner-box">
+          <div class="forms-wrap">
+            
+            <form action="/login" method="post" autocomplete="off" class="sign-in-form">
+              <div class="logo">
+                <img src="./images/slulogo.png" alt="easyclass" />
+                <img src="./images/ojtPortalLogo.png" alt="easyclass" />
+              </div>
+
+              <div class="heading">
+                <h2>Welcome Back</h2>
+              </div>
+
+              <div class="actual-form">
+                <div class="input-wrap">
+                  <input
+                    name="email"
+                    type="text"
+                    minlength="4"
+                    class="input-field"
+                    autocomplete="off"
+                    required
+                  />
+                  <label>Email</label>
+                </div>
+
+                <div class="input-wrap">
+                  <input
+                    name="password"
+                    type="password"
+                    minlength="4"
+                    class="input-field"
+                    autocomplete="off"
+                    required
+                  />
+                  <label>Password</label>
+                </div>
+
+                <input type="submit" value="Sign In" class="sign-btn" />
+                
+              <p style="font-size: 10px;">Forgot password? contact <span style="font-weight: bold;">admin@slu.edu.ph</span></p>
+              </div>
+              <%if (typeof error !== 'undefined' && error !== null) { %>
+                <p class="error-message"><%= error %>></p>
+              <% } %>
+            </form>
+          </div>
+
+          <div class="carousel">
+            <div class="images-wrapper">
+              <img src="./images/carousel1.png" class="image img-1 show" alt="" />
+              <img src="./images/carousel2.png" class="image img-2" alt="" />
+              <img src="./images/carousel3.png" class="image img-3" alt="" />
+            </div>
+
+            <div class="text-slider">
+              <div class="text-wrap">
+                <div class="text-group">
+                  <h2>Welcome to SLU OJT Portal</h2>
+                  <h2>Track Your Submissions</h2>
+                  <h2>Monitor OJT Submissions</h2>
+                </div>
+              </div>
+
+              <div class="bullets">
+                <span class="active" data-value="1"></span>
+                <span data-value="2"></span>
+                <span data-value="3"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Javascript file -->
+    <script src="/javascripts/login.js"></script>
+  </body>
+</html>
+
